@@ -1,11 +1,8 @@
 package com.example.buzzerbeater.client4222;
-
-import java.io.ByteArrayOutputStream;
+import org.json.JSONObject;
 import java.io.*;
 import android.util.*;
-
 import java.net.*;
-import java.net.UnknownHostException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -57,7 +54,6 @@ public class MainActivity extends Activity {
             String str = et.getText().toString();
             new TcpSendTask().execute(str);
         }};
-
     OnClickListener buttonConnectOnClickListener = new OnClickListener(){
                 @Override
                 public void onClick(View arg0) {
@@ -66,22 +62,18 @@ public class MainActivity extends Activity {
 
     private class TcpSendTask extends AsyncTask<String, Void, Void> {
         String response = "";
-
         @Override
         protected Void doInBackground(String... arg0) {
             //Socket socket = null;
             try {
                 String str = arg0[0];
-                if(socket == null)
+                if(socket == null) {
                     socket = new Socket(dstAddress, dstPort);
-
-                PrintWriter out = new PrintWriter(new BufferedWriter(
-                        new OutputStreamWriter(socket.getOutputStream())),
-                        true);
+                }
+                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())),true);
                 out.println(str);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 response = in.readLine();
-
             } catch (UnknownHostException e) {
                 e.printStackTrace();
                 response = "UnknownHostException: " + e.toString();
