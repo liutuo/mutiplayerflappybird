@@ -28,26 +28,23 @@ public class MainActivity extends Activity {
         editTextAddress = (EditText)findViewById(R.id.address);
         editTextPort = (EditText)findViewById(R.id.port);
         buttonConnect = (Button)findViewById(R.id.connect);
-        buttonClear = (Button)findViewById(R.id.clear);
+        buttonClear = (Button)findViewById(R.id.shake);
         textResponse = (TextView)findViewById(R.id.response);
         buttonSend = (Button)findViewById(R.id.sendButton);
         buttonConnect.setOnClickListener(buttonConnectOnClickListener);
         buttonSend.setOnClickListener(buttonSendOnClickListener);
-        buttonClear.setOnClickListener(new OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                textResponse.setText("");
-            }});
+        buttonClear.setOnClickListener(buttonShakeOnClickListener);
 
     }
     protected void onDestroy(){
-        if(socket!=null){
-            try {
-                socket.close();
-            }catch (Exception e){
-            }
-        }
+
     }
+    OnClickListener buttonShakeOnClickListener = new OnClickListener(){
+        @Override
+        public void onClick(View arg0) {
+
+            new TcpSendTask().execute("SHAKE");
+        }};
     OnClickListener buttonSendOnClickListener = new OnClickListener(){
         @Override
         public void onClick(View arg0) {
@@ -67,9 +64,9 @@ public class MainActivity extends Activity {
             //Socket socket = null;
             try {
                 String str = arg0[0];
-                if(socket == null) {
+                //if(socket == null) {
                     socket = new Socket(dstAddress, dstPort);
-                }
+                //}
                 PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())),true);
                 out.println(str);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -80,7 +77,7 @@ public class MainActivity extends Activity {
             } catch (IOException e) {
                 e.printStackTrace();
                 response = "IOException: " + e.toString();
-            }/*finally{
+            }finally{
                 if(socket != null){
                     try {
                         socket.close();
@@ -88,7 +85,7 @@ public class MainActivity extends Activity {
                         e.printStackTrace();
                     }
                 }
-            }*/
+            }
             return null;
         }
         @Override
