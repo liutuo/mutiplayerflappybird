@@ -2,10 +2,11 @@
 "use strict";
 var LIB_PATH = "./";
 require(LIB_PATH + "Config.js");
+require(LIB_PATH + "player.js")
 
 function BirdServer() {
-	var web_sockets;
-	var players = [];
+	var web_sockets = {};
+	var players = {};
 	var controllers;
 	var player_count = 0;
 
@@ -19,8 +20,8 @@ function BirdServer() {
 	 */
 	var broadcast = function(msg) {
 		var id;
-		for (id in sockets) {
-			sockets[id].write(JSON.stringify(msg));
+		for (id in web_sockets) {
+			web_sockets[id].write(JSON.stringify(msg));
 		}
 	}
 
@@ -53,6 +54,7 @@ function BirdServer() {
 
 		var new_player = new Player();
 		players[conn.id] = new_player;
+		web_sockets[conn.id] = conn;
 	}
 
 	this.start = function() {
@@ -65,7 +67,7 @@ function BirdServer() {
 		//establish connection between server and web client
 		sock.on('connection', function(conn) {
 			console.log("connected");
-			console.log(conn);
+			console.log(conn.id);
 			// Sends to client
 			broadcast({
 				type: "message",
@@ -119,7 +121,7 @@ function BirdServer() {
 		var app = express();
 		var httpServer = http.createServer(app);
 		sock.installHandlers(httpServer, {
-			prefix: '/'
+			prefix: '/bird'
 		});
 		httpServer.listen(Config.WEBPORT, '0.0.0.0');
 		app.use(express.static(__dirname));

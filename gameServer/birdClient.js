@@ -21,7 +21,7 @@ function BirdClient() {
 	var initNetwork = function() {
 		// Attempts to connect to game server
 		try {
-			socket = new SockJS("http://" + Config.SERVER_NAME + ":" + Config.WEBPORT + "/");
+			socket = new SockJS("http://" + Config.SERVER_NAME + ":" + Config.WEBPORT + "/bird");
 			socket.onmessage = function(e) {
 				var message = JSON.parse(e.data);
 				switch (message.type) {
@@ -42,7 +42,7 @@ function BirdClient() {
 						console.log("end");
 						break;
 					default:
-						console.log("default");
+						console.log("unhandle type:" + message.type);
 				}
 			}
 		} catch (e) {
