@@ -1,6 +1,8 @@
 "use strict"
 
-function Player() {
+function Player(pid, bird) {
+	this.bird = bird;
+	this.pid = pid;
 	
 }
 
