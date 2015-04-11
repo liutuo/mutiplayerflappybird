@@ -1,7 +1,9 @@
 "use strict";
 
 function Render() {
-	var stage, width, height, bird_red, bird_blue, ground,loader, manifest, hill, hill2, tubes;
+	var stage, width, height, ground, loader, manifest, hill, hill2;
+	var birds = {};
+	var tubes = {};
 	var isStarted = true;
 
 	this.init = function() {
@@ -11,13 +13,22 @@ function Render() {
 		width = stage.canvas.width;
 		height = stage.canvas.height;
 
-		manifest = [
-			{src: "red-bird-sprite-sheet.png", id: "bird_blue"},
-			{src: "blue-bird-sprite-sheet.png", id: "bird_red"},
-			{src: "ground.png", id: "ground"},
-			{src: "hill1.png", id: "hill"},
-			{src: "hill2.png", id: "hill2"},
-		];
+		manifest = [{
+			src: "red-bird-sprite-sheet.png",
+			id: "bird_blue"
+		}, {
+			src: "blue-bird-sprite-sheet.png",
+			id: "bird_red"
+		}, {
+			src: "ground.png",
+			id: "ground"
+		}, {
+			src: "hill1.png",
+			id: "hill"
+		}, {
+			src: "hill2.png",
+			id: "hill2"
+		}, ];
 		loader = new createjs.LoadQueue(false);
 		loader.addEventListener("complete", handleComplete);
 		loader.loadManifest(manifest, true, "Assets/");
@@ -30,17 +41,22 @@ function Render() {
 
 	var handleComplete = function() {
 
-		createBird();
 		createBackGround();
 
 		// start to tick
 		createjs.Ticker.addEventListener("tick", handleTick);
 	}
 
-	var createBird = function() {
+	this.createBird = function(bid) {
+
+		var birdImage;
+		if (bid % 2 == 0)
+			birdImage = "bird_red";
+		else
+			birdImage = "bird_blue";
 
 		var spriteSheet = new createjs.SpriteSheet({
-			images: [loader.getResult("bird_red")],
+			images: [loader.getResult(birdImage)],
 			frames: {
 				"width": Config.BIRD_FRAME_WIDTH,
 				"height": Config.BIRD_FRAME_HEIGHT,
@@ -51,28 +67,11 @@ function Render() {
 				stay: 0
 			}
 		});
-		bird_red = new createjs.Sprite(spriteSheet, "fly");
-		bird_red.x = 10;
-		bird_red.y = 10;
+		birds[bid] = new createjs.Sprite(spriteSheet, "fly");
+		birds[bid].x = 10;
+		birds[bid].y = 10;
 
-		var spriteSheet = new createjs.SpriteSheet({
-			images: [loader.getResult("bird_blue")],
-			frames: {
-				"width": Config.BIRD_FRAME_WIDTH,
-				"height": Config.BIRD_FRAME_HEIGHT,
-				"count": 8
-			},
-			animations: {
-				fly: [0, 1, 2, 3, 4, 5, 7, 8],
-				stay: 0
-			}
-		});
-		bird_blue = new createjs.Sprite(spriteSheet, "fly");
-		bird_blue.x = 100;
-		bird_blue.y = 100;
-
-		stage.addChild(bird_red);
-		stage.addChild(bird_blue);
+		stage.addChild(birds[bid]);
 	}
 
 	var createBackGround = function() {
@@ -87,7 +86,7 @@ function Render() {
 		hill.alpha = 0.5;
 
 		hill2 = new createjs.Bitmap(loader.getResult("hill2"));
-		hill2.setTransform(Math.random() *width, height - hill2.image.height * 3 - groundImg.height, 3, 3);
+		hill2.setTransform(Math.random() * width, height - hill2.image.height * 3 - groundImg.height, 3, 3);
 		stage.addChild(ground, hill, hill2);
 	}
 
@@ -108,17 +107,21 @@ function Render() {
 			}
 
 		}
-		
+
 
 		stage.update(event);
 	}
 
-	this.updateBird = function() {
+	this.updateBird = function(position) {
 
 	}
 
 	this.addTube = function(tube) {
+		var circle = new createjs.Shape();
+		circle.graphics.beginFill("green").drawRect(tube.x, tube.y, tube.w, tube.h);
 
+
+		stage.addChild(circle);
 	}
 }
 
