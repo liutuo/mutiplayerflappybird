@@ -3,7 +3,7 @@
 function Render() {
 	var stage, width, height, ground, loader, manifest, hill, hill2;
 	var birds = {};
-	var tubes = {};
+	var tubes = [];
 	var isStarted = true;
 
 	this.init = function() {
@@ -105,6 +105,10 @@ function Render() {
 			if (hill2.x + hill2.image.width * hill2.scaleX <= 0) {
 				hill2.x = width;
 			}
+			var id;
+			for (id in tubes) {
+				tubes[id].x = tubes[id].x - deltaS * 150;
+			}
 
 		}
 
@@ -117,11 +121,11 @@ function Render() {
 	}
 
 	this.addTube = function(tube) {
-		var circle = new createjs.Shape();
-		circle.graphics.beginFill("green").drawRect(tube.x, tube.y, tube.w, tube.h);
+		var tubeShape = new createjs.Shape();
+		tubeShape.graphics.beginFill("green").drawRect(tube.x, tube.y, tube.w, tube.h);
 
-
-		stage.addChild(circle);
+		tubes.push(tubeShape);
+		stage.addChild(tubeShape);
 	}
 }
 
