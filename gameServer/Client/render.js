@@ -28,7 +28,10 @@ function Render() {
 		}, {
 			src: "hill2.png",
 			id: "hill2"
-		}, ];
+		}, {
+			src: "tube.png",
+			id: "tube"
+		}];
 		loader = new createjs.LoadQueue(false);
 		loader.addEventListener("complete", handleComplete);
 		loader.loadManifest(manifest, true, "Assets/");
@@ -136,5 +139,3 @@ function Render() {
 }
 
 global.Render = Render;
-var render = new Render();
-render.init();

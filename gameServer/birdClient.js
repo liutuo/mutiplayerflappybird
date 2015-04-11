@@ -55,7 +55,9 @@ function BirdClient() {
 	 *
 	 * Initialize a play area and add events.
 	 */
-	var initGUI = function() {}
+	var initGUI = function() {
+		renderer.init();
+	}
 		/*
 		 * private method: render
 		 *
@@ -81,7 +83,7 @@ function BirdClient() {
 }
 
 var gameClient = new BirdClient();
-var render = new Render();
+var renderer = new Render();
 setTimeout(function() {
 	gameClient.start();
 }, 500);
