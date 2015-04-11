@@ -1,52 +1,46 @@
 "use strict";
 
 function Render() {
-	this.stage;
-	this.width;
-	this.height;
-	this.bird_red;
-	this.bird_blue;
-	this.ground;
-	this.loader;
-	this.isStarted = true;
+	var stage, width, height, bird_red, bird_blue, ground,loader, manifest, hill, hill2, tubes;
+	var isStarted = true;
 
 	this.init = function() {
 		// setup main stage
-		this.stage = new createjs.Stage("gameStage");
+		stage = new createjs.Stage("gameStage");
 		// grab canvas width and height
-		this.width = this.stage.canvas.width;
-		this.height = this.stage.canvas.height;
+		width = stage.canvas.width;
+		height = stage.canvas.height;
 
-		this.manifest = [
+		manifest = [
 			{src: "red-bird-sprite-sheet.png", id: "bird_blue"},
 			{src: "blue-bird-sprite-sheet.png", id: "bird_red"},
 			{src: "ground.png", id: "ground"},
 			{src: "hill1.png", id: "hill"},
 			{src: "hill2.png", id: "hill2"},
 		];
-		this.loader = new createjs.LoadQueue(false);
-		this.loader.addEventListener("complete", this.handleComplete);
-		this.loader.loadManifest(this.manifest, true, "Assets/");
+		loader = new createjs.LoadQueue(false);
+		loader.addEventListener("complete", handleComplete);
+		loader.loadManifest(manifest, true, "Assets/");
 
 	}
 
 	this.startGame = function() {
-		this.isStarted = true;
+		isStarted = true;
 	}
 
-	this.handleComplete = function() {
+	var handleComplete = function() {
 
-		render.createBird();
-		render.createBackGround();
+		createBird();
+		createBackGround();
 
 		// start to tick
-		createjs.Ticker.addEventListener("tick", render.handleTick);
+		createjs.Ticker.addEventListener("tick", handleTick);
 	}
 
-	this.createBird = function() {
+	var createBird = function() {
 
 		var spriteSheet = new createjs.SpriteSheet({
-			images: [render.loader.getResult("bird_red")],
+			images: [loader.getResult("bird_red")],
 			frames: {
 				"width": Config.BIRD_FRAME_WIDTH,
 				"height": Config.BIRD_FRAME_HEIGHT,
@@ -57,12 +51,12 @@ function Render() {
 				stay: 0
 			}
 		});
-		render.bird_red = new createjs.Sprite(spriteSheet, "fly");
-		render.bird_red.x = 10;
-		render.bird_red.y = 10;
+		bird_red = new createjs.Sprite(spriteSheet, "fly");
+		bird_red.x = 10;
+		bird_red.y = 10;
 
 		var spriteSheet = new createjs.SpriteSheet({
-			images: [render.loader.getResult("bird_blue")],
+			images: [loader.getResult("bird_blue")],
 			frames: {
 				"width": Config.BIRD_FRAME_WIDTH,
 				"height": Config.BIRD_FRAME_HEIGHT,
@@ -73,53 +67,57 @@ function Render() {
 				stay: 0
 			}
 		});
-		render.bird_blue = new createjs.Sprite(spriteSheet, "fly");
-		render.bird_blue.x = 100;
-		render.bird_blue.y = 100;
+		bird_blue = new createjs.Sprite(spriteSheet, "fly");
+		bird_blue.x = 100;
+		bird_blue.y = 100;
 
-		render.stage.addChild(render.bird_red);
-		render.stage.addChild(render.bird_blue);
+		stage.addChild(bird_red);
+		stage.addChild(bird_blue);
 	}
 
-	this.createBackGround = function() {
-		var groundImg = render.loader.getResult("ground");
-		render.ground = new createjs.Shape();
-		render.ground.graphics.beginBitmapFill(groundImg).drawRect(0, 0, render.width + groundImg.width, groundImg.height);
-		render.ground.tileW = groundImg.width;
-		render.ground.y = render.height - groundImg.height;
+	var createBackGround = function() {
+		var groundImg = loader.getResult("ground");
+		ground = new createjs.Shape();
+		ground.graphics.beginBitmapFill(groundImg).drawRect(0, 0, width + groundImg.width, groundImg.height);
+		ground.tileW = groundImg.width;
+		ground.y = height - groundImg.height;
 
-		render.hill = new createjs.Bitmap(render.loader.getResult("hill"));
-		render.hill.setTransform(Math.random() * render.width, render.height - render.hill.image.height * 4 - groundImg.height, 4, 4);
-		render.hill.alpha = 0.5;
+		hill = new createjs.Bitmap(loader.getResult("hill"));
+		hill.setTransform(Math.random() * width, height - hill.image.height * 4 - groundImg.height, 4, 4);
+		hill.alpha = 0.5;
 
-		render.hill2 = new createjs.Bitmap(render.loader.getResult("hill2"));
-		render.hill2.setTransform(Math.random() *render.width, render.height - render.hill2.image.height * 3 - groundImg.height, 3, 3);
-		render.stage.addChild(render.ground, render.hill, render.hill2);
+		hill2 = new createjs.Bitmap(loader.getResult("hill2"));
+		hill2.setTransform(Math.random() *width, height - hill2.image.height * 3 - groundImg.height, 3, 3);
+		stage.addChild(ground, hill, hill2);
 	}
 
-	this.handleTick = function(event) {
+	var handleTick = function(event) {
 		var deltaS = event.delta / 1000;
 
 		// if the game is started, start to move the background objects
-		if (render.isStarted) {
-			render.ground.x = (render.ground.x - deltaS * 150) % render.ground.tileW;
+		if (isStarted) {
+			ground.x = (ground.x - deltaS * 150) % ground.tileW;
 
-			render.hill.x = (render.hill.x - deltaS * 30);
-			if (render.hill.x + render.hill.image.width * render.hill.scaleX <= 0) {
-				render.hill.x = render.width;
+			hill.x = (hill.x - deltaS * 30);
+			if (hill.x + hill.image.width * hill.scaleX <= 0) {
+				hill.x = width;
 			}
-			render.hill2.x = (render.hill2.x - deltaS * 45);
-			if (render.hill2.x + render.hill2.image.width * render.hill2.scaleX <= 0) {
-				render.hill2.x = render.width;
+			hill2.x = (hill2.x - deltaS * 45);
+			if (hill2.x + hill2.image.width * hill2.scaleX <= 0) {
+				hill2.x = width;
 			}
 
 		}
 		
 
-		render.stage.update(event);
+		stage.update(event);
 	}
 
 	this.updateBird = function() {
+
+	}
+
+	this.addTube = function(tube) {
 
 	}
 }
