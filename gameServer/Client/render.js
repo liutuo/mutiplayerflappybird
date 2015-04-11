@@ -105,9 +105,15 @@ function Render() {
 			if (hill2.x + hill2.image.width * hill2.scaleX <= 0) {
 				hill2.x = width;
 			}
-			var id;
-			for (id in tubes) {
-				tubes[id].x = tubes[id].x - deltaS * 150;
+			var index;
+			for (index in tubes) {
+				if (tubes[index].x + Config.TUBE_WIDTH< -1000) {
+					stage.removeChild(tubes[index]);
+					tubes.splice(index, 1);;
+				}
+				else {
+					tubes[index].x = tubes[index].x - deltaS * 150;
+				}
 			}
 
 		}
