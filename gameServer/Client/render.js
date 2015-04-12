@@ -61,9 +61,9 @@ function Render() {
 		}
 
 		if (isWinner) {
-			winningSign.Text = "You Win!!";
+			winningSign.text = "You Win!!";
 		} else {
-			winningSign.Text = "You Lose..."
+			winningSign.text = "You Lose..."
 		}
 		stage.addChild(winningSign);
 	}
@@ -118,15 +118,16 @@ function Render() {
 		hill2.setTransform(Math.random() * width, height - hill2.image.height * 3 - groundImg.height, 3, 3);
 		stage.addChild(ground, hill, hill2);
 
-		winningSign = new createjs.Text("", "20px Arial", "#ff7700");
+		winningSign = new createjs.Text("", "30px Arial", "#ff7700");
 		winningSign.x = 500;
 		winningSign.y = 200;
 		winningSign.textBaseline = "alphabetic";
 
-		playerSign = new createjs.Text("", "20px Arial", "#ff7700");
+		playerSign = new createjs.Text("", "30px Arial", "#ff7700");
 		playerSign.x = 500;
 		playerSign.y = 200;
 		playerSign.textBaseline = "alphabetic";
+
 	}
 
 	var handleTick = function(event) {
@@ -174,7 +175,8 @@ function Render() {
 	}
 
 	this.setPlayer = function(id) {
-		playerSign.Text = "You are player " + id;
+		playerSign.text = "You are player "+id;
+		console.log(playerSign);
 		stage.addChild(playerSign);
 	}
 }

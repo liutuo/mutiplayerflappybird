@@ -5,15 +5,14 @@ require(LIB_PATH + "Config.js");
 //require(LIB_PATH + "player.js")
 
 function BirdServer() {
-	var web_sockets; // Associative array for web sockets, indexed via player ID
-	var players; // Associative array for players, indexed via socket ID
-	var p1, p2;       // Player 1 and 2.
+	var web_sockets = {}; // Associative array for web sockets, indexed via player ID
+	var birds = {};
 	var controllers; // controllers 1 and 2.
 	var player_count = 0;
 	var nextPID;
-	var occupied=[0,0];
-	var gameover=[0,0];
-	
+	var occupied = [0, 0];
+	var gameover = [0, 0];
+
 	/*
 	 * private method: broadcast(msg)
 	 *
@@ -37,8 +36,8 @@ function BirdServer() {
 	 *
 	 * e.g., unicast(socket, {type: "abc", x: 30});
 	 */
-	var unicast = function(socket, msg) {
-		socket.write(JSON.stringify(msg));
+	var unicast = function(sk, msg) {
+		sk.write(JSON.stringify(msg));
 	}
 
 	/*
@@ -52,19 +51,25 @@ function BirdServer() {
 
 		// Send message to new player (the current client)
 		unicast(conn, {
-			type: "message",
-			content: "Your are player" + nextPID
+			type: "connect",
+			id: nextPID,
+			isMyself: true,
 		});
 
-		players[conn.id] = new Player(conn.id, nextPID);
-        web_sockets[nextPID] = conn;
+		var index;
+		for (index in web_sockets) {
+			unicast(web_sockets[id], {
+				type: "connect",
+				id: index,
+				isMyself: true,
+			});
+		}
 
-        // Mark as player 1 or 2
-        if (nextPID == 1) {
-            p1 = players[conn.id];
-        } else if (nextPID == 2) {
-            p2 = players[conn.id];
-        }
+		var bird = new Bird();
+		birds[nextPID] = bird;
+
+		// players[conn.id] = new Player(conn.id, nextPID);
+		web_sockets[nextPID] = conn;
 
 		nextPID = ((nextPID + 1) % 2 === 0) ? 2 : 1;
 	}
@@ -81,10 +86,6 @@ function BirdServer() {
 			console.log("connected");
 			console.log(conn.id);
 			// Sends to client
-			broadcast({
-				type: "message",
-				content: "There is a new player with " + conn.id
-			});
 
 			if (player_count == 2) {
 				// Send back message that game is full
@@ -106,13 +107,11 @@ function BirdServer() {
 				// delete player
 				player_count--;
 				// Set nextPID to quitting player's PID
-                nextPID = players[conn.id].pid;
-                occupied[nextPID] = 0;
-                gameover[nextPID] = 0;
-                // Remove player who wants to quit/closed the window
-                if (players[conn.id] === p1) p1 = undefined;
-                if (players[conn.id] === p2) p2 = undefined;
-				delete players[conn.id];
+				nextPID = players[conn.id].pid;
+				occupied[nextPID] = 0;
+				gameover[nextPID] = 0;
+				// Remove player who wants to quit/closed the window
+				delete birds[conn.id];
 
 				// Sends to everyone connected to server except the client
 				broadcast({
@@ -127,7 +126,6 @@ function BirdServer() {
 				console.log("data");
 				var message = JSON.parse(data);
 
-				var thisPlayer = players[conn.id];
 				switch (message.type) {
 					default: console.log("Unhandled " + message.type);
 				}
@@ -146,59 +144,59 @@ function BirdServer() {
 
 
 		net.createServer(function(socket) {
-        
-            // We have a connection - a socket object is assigned to the connection automatically
-            console.log('CONNECTED: ' + socket.remoteAddress +':'+ socket.remotePort);
-            
-            // Add a 'data' event handler to this instance of socket
-            socket.on('data', function(data) {
-                console.log('data length is '+data.length);
-                if(data.toString().substr(0,data.length-1) === "1"){
-                	if(occupied[1] == 0){ // available
-                		socket.write('Player 1\n');
-                		occupied[1] == 1;
-                	}else{
-                		socket.write('Player 2\n');
-                		occupied[2] == 1;
-                	}
-                    
-                }else if(data.toString().substr(0,data.length-1) === "2"){
-                    if(occupied[2] == 0){ //available
-                		sock.write('Player 2');
-                		occupied[2] == 1
-                	}else{
-                		sock.write('Player 1');
-                		occupied[1] == 1;
-                	}
-                }else if(data.toString().substr(0,data.length-1) === "SHAKE"){
-                    // get player id from data, check gameover array, if not gameover, send back OK, otherwise send "GAME OVER"
-                    // move up the bird for player id
-                    var id;
-                    // get player id
 
-                    if(gameover[id]){
-                    	sock.write('GAME OVER');
-                    } else{
-                    	sock.write('OK');
-                    	// update bird
-                    }
-                }else if(data.toString().substr(0,data.length-1) === "RESTART"){
-                	// get player id from data, check gameover array, if all gameover, send back "RESTART OK" , otherwise send "RESTART NOT OK"
-                }else{
-                	console.log(data);
-                }
-                console.log('occupied is ' + occupied[1] +' '+occupied[2]);
-                console.log('gameover is ' +gameover[1]+' '+gameover[2]);
-                //sock.write(JSON.stringify({type:"playerid", content: "" + nextPID}));
-                
-            });
-            
-            // Add a 'close' event handler to this instance of socket
-            sock.on('close', function(data) {
-                console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
-            });
-            
-            }).listen(4222, Config.SERVER_NAME);
+			// We have a connection - a socket object is assigned to the connection automatically
+			console.log('CONNECTED: ' + socket.remoteAddress + ':' + socket.remotePort);
+
+			// Add a 'data' event handler to this instance of socket
+			socket.on('data', function(data) {
+				console.log('data length is ' + data.length);
+				if (data.toString().substr(0, data.length - 1) === "1") {
+					if (occupied[1] == 0) { // available
+						socket.write('Player 1\n');
+						occupied[1] == 1;
+					} else {
+						socket.write('Player 2\n');
+						occupied[2] == 1;
+					}
+
+				} else if (data.toString().substr(0, data.length - 1) === "2") {
+					if (occupied[2] == 0) { //available
+						socket.write('Player 2');
+						occupied[2] == 1
+					} else {
+						socket.write('Player 1');
+						occupied[1] == 1;
+					}
+				} else if (data.toString().substr(0, data.length - 1) === "SHAKE") {
+					// get player id from data, check gameover array, if not gameover, send back OK, otherwise send "GAME OVER"
+					// move up the bird for player id
+					var id;
+					// get player id
+
+					if (gameover[id]) {
+						socket.write('GAME OVER');
+					} else {
+						socket.write('OK');
+						// update bird
+					}
+				} else if (data.toString().substr(0, data.length - 1) === "RESTART") {
+					// get player id from data, check gameover array, if all gameover, send back "RESTART OK" , otherwise send "RESTART NOT OK"
+				} else {
+					console.log(data);
+				}
+				console.log('occupied is ' + occupied[1] + ' ' + occupied[2]);
+				console.log('gameover is ' + gameover[1] + ' ' + gameover[2]);
+				//sock.write(JSON.stringify({type:"playerid", content: "" + nextPID}));
+
+			});
+
+			// Add a 'close' event handler to this instance of socket
+			socket.on('close', function(data) {
+				console.log('CLOSED: ' + socket.remoteAddress + ' ' + socket.remotePort);
+			});
+
+		}).listen(4222, Config.SERVER_NAME);
 	}
 }
 
