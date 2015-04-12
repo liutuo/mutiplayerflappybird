@@ -4,7 +4,9 @@ function Render() {
 	var stage, width, height, ground, loader, manifest, hill, hill2;
 	var birds = {};
 	var tubes = [];
-	var isStarted = true;
+	var winningSign;
+	var playerSign;
+	var isStarted = false;
 
 	this.init = function() {
 		// setup main stage
@@ -40,6 +42,30 @@ function Render() {
 
 	this.startGame = function() {
 		isStarted = true;
+
+		var index;
+		for (index in birds) {
+			birds[index].gotoAndPlay("fly");
+		}
+
+		stage.removeChild(winningSign);
+		stage.removeChild(playerSign);
+	}
+
+	this.endGame = function(isWinner, distance) {
+		isStarted = false;
+
+		var index;
+		for (index in birds) {
+			birds[index].gotoAndPlay("stay");
+		}
+
+		if (isWinner) {
+			winningSign.Text = "You Win!!";
+		} else {
+			winningSign.Text = "You Lose..."
+		}
+		stage.addChild(winningSign);
 	}
 
 	var handleComplete = function() {
@@ -91,6 +117,16 @@ function Render() {
 		hill2 = new createjs.Bitmap(loader.getResult("hill2"));
 		hill2.setTransform(Math.random() * width, height - hill2.image.height * 3 - groundImg.height, 3, 3);
 		stage.addChild(ground, hill, hill2);
+
+		winningSign = new createjs.Text("", "20px Arial", "#ff7700");
+		winningSign.x = 500;
+		winningSign.y = 200;
+		winningSign.textBaseline = "alphabetic";
+
+		playerSign = new createjs.Text("", "20px Arial", "#ff7700");
+		playerSign.x = 500;
+		playerSign.y = 200;
+		playerSign.textBaseline = "alphabetic";
 	}
 
 	var handleTick = function(event) {
@@ -110,11 +146,10 @@ function Render() {
 			}
 			var index;
 			for (index in tubes) {
-				if (tubes[index].x + Config.TUBE_WIDTH< -1000) {
+				if (tubes[index].x + Config.TUBE_WIDTH < -1000) {
 					stage.removeChild(tubes[index]);
 					tubes.splice(index, 1);;
-				}
-				else {
+				} else {
 					tubes[index].x = tubes[index].x - deltaS * 150;
 				}
 			}
@@ -125,8 +160,9 @@ function Render() {
 		stage.update(event);
 	}
 
-	this.updateBird = function(position) {
-
+	this.updateBird = function(id, position) {
+		birds[id].x = position.x;
+		birds[id].y = position.y;
 	}
 
 	this.addTube = function(tube) {
@@ -135,6 +171,11 @@ function Render() {
 
 		tubes.push(tubeShape);
 		stage.addChild(tubeShape);
+	}
+
+	this.setPlayer = function(id) {
+		playerSign.Text = "You are player " + id;
+		stage.addChild(playerSign);
 	}
 }
 

@@ -4,6 +4,8 @@
 function BirdClient() {
 	var socket;
 	var lastUpdateAt = 0;
+	var myId;
+	var birds = {};
 
 	var sendToServer = function(msg) {
 		var date = new Date();
@@ -25,6 +27,13 @@ function BirdClient() {
 			socket.onmessage = function(e) {
 				var message = JSON.parse(e.data);
 				switch (message.type) {
+					case "connect":
+						if (message.isMyself) {
+							myId = message.id;
+						}
+						var bird = new Bird();
+						birds[message.id] = bird;
+						break;
 					case "update":
 						var t = message.timestamp;
 						if (t < lastUpdateAt)
@@ -34,12 +43,22 @@ function BirdClient() {
 						// update player
 						console.log("update player");
 
+						var birdsUpdate = message.birds;
+						var index;
+						for (index in birdsUpdate) {
+							var bird = birdsUpdate[index];
+							birds[bird.id].setBirdPosition({
+								x: bird.x,
+								y: bird.y
+							});
+						}
+						render();
 						break;
 					case "start":
-						console.log("start");
+						startGame();
 						break;
 					case "end":
-						console.log("end");
+						endGame(message.winner, message.distance);
 						break;
 					default:
 						console.log("unhandle type:" + message.type);
@@ -58,28 +77,52 @@ function BirdClient() {
 	var initGUI = function() {
 		renderer.init();
 	}
-		/*
-		 * private method: render
-		 *
-		 * Draw the play area.  Called periodically at a rate
-		 * equals to the frame rate.
-		 */
+
+	/*
+	 * private method: render
+	 *
+	 * Draw the play area.  Called periodically at a rate
+	 * equals to the frame rate.
+	 */
 	var render = function() {}
 
-	    /*
-     * priviledge method: start
-     *
-     * Create the ball and paddles objects, connects to
-     * server, draws the GUI, and starts the rendering
-     * loop.
-     */
-    this.start = function() {
-    	//initialize game
+	/**
+	 * private method: startGame
+	 *
+	 * start running the game
+	 */
+	var startGame = function() {
+		renderer.startGame();
+	}
 
-    	// Initialize network and GUI
-        initNetwork();
-        initGUI();
-    }
+	/**
+	 * private method: endGame
+	 * 
+	 * @param  int winnerid id of the winner
+	 * @param  int distance distance flied
+	 */
+	var endGame = function(winnerid, distance) {
+		if (myId === winnerid) {
+			renderer.endGame(true, distance);
+		}
+		else {
+			renderer.endGame(false, distance);
+		}
+	}
+	/*
+	 * priviledge method: start
+	 *
+	 * Create the ball and paddles objects, connects to
+	 * server, draws the GUI, and starts the rendering
+	 * loop.
+	 */
+	this.start = function() {
+		//initialize game
+
+		// Initialize network and GUI
+		initNetwork();
+		initGUI();
+	}
 }
 
 var gameClient = new BirdClient();

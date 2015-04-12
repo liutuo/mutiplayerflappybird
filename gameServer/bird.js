@@ -8,11 +8,15 @@ function Bird() {
 	this.velocity = 0;
 
 	this.setBirdPosition = function(position) {
-
+		this.x = position.x;
+		this.y = position.y;
 	}
 
 	this.getBirdPosition = function() {
-
+		return {
+			x: this.x,
+			y: this.y
+		};
 	}
 
 	this.birdFlap = function() {
