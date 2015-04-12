@@ -11,7 +11,7 @@ var Config = {
 	ACCELERATION : 9,
 	GROUND_HEIGHT : 80,
 	TUBE_WIDTH : 80,
-
+	SERVER_INTERVAL : 50,
 }
 
 global.Config = Config;

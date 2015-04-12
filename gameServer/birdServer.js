@@ -2,7 +2,6 @@
 "use strict";
 var LIB_PATH = "./";
 require(LIB_PATH + "Config.js");
-//require(LIB_PATH + "player.js")
 
 function BirdServer() {
 	var web_sockets = {}; // Associative array for web sockets, indexed via player ID
@@ -10,9 +9,8 @@ function BirdServer() {
 	var controllers; // controllers 1 and 2.
 	var player_count = 0;
 	var nextPID;
-	var occupied = [0, 0];
-	var gameover = [0, 0];
-
+	var isGameStarted = false;
+	var gameInterval;
 	/*
 	 * private method: broadcast(msg)
 	 *
@@ -68,8 +66,8 @@ function BirdServer() {
 		var bird = new Bird();
 		birds[nextPID] = bird;
 
-		// players[conn.id] = new Player(conn.id, nextPID);
 		web_sockets[nextPID] = conn;
+		controllers[nextPID] = "empty";
 
 		nextPID = ((nextPID + 1) % 2 === 0) ? 2 : 1;
 	}
@@ -106,18 +104,8 @@ function BirdServer() {
 
 				// delete player
 				player_count--;
-				// Set nextPID to quitting player's PID
-				nextPID = players[conn.id].pid;
-				occupied[nextPID] = 0;
-				gameover[nextPID] = 0;
-				// Remove player who wants to quit/closed the window
-				delete birds[conn.id];
 
-				// Sends to everyone connected to server except the client
-				broadcast({
-					type: "message",
-					content: " There is now " + player_count + " players."
-				});
+
 
 			});
 
@@ -150,44 +138,43 @@ function BirdServer() {
 
 			// Add a 'data' event handler to this instance of socket
 			socket.on('data', function(data) {
-				console.log('data length is ' + data.length);
-				if (data.toString().substr(0, data.length - 1) === "1") {
-					if (occupied[1] == 0) { // available
-						socket.write('Player 1\n');
-						occupied[1] == 1;
-					} else {
-						socket.write('Player 2\n');
-						occupied[2] == 1;
-					}
+				var message = JSON.parse(data);
+				swtich(message.type) {
+					case "connect":
+						if (controllers[message.id] === undefined || controllers[message.id] !== "empty") {
+							socket.write("NOT OK\n");
+						} else {
+							controllers[message.id] = "taken";
+							socket.write("OK\n");
+						}
+						break;
+					case "ready":
+						controllers[message.id] = "ready";
+						if (isAllReady()) {
+							isGameStarted = true;
+							gameInterval = setInterval(function() {gameLoop();}, Config.SERVER_INTERVAL);
+							broadcast({
+								type:"start",
+								timestamp: getCurrentTime();
+							});
+						}
+						break;
+					case "shake":
+						if (isGameStarted) {
+							birds[message.id].birdFlap();
+						}
+						break;
+					case "disconnect":
+						delete controllers[message.id];
+						isGameStarted = false;
+						resetGame();
+						break;
+					case "restart":
 
-				} else if (data.toString().substr(0, data.length - 1) === "2") {
-					if (occupied[2] == 0) { //available
-						socket.write('Player 2');
-						occupied[2] == 1
-					} else {
-						socket.write('Player 1');
-						occupied[1] == 1;
-					}
-				} else if (data.toString().substr(0, data.length - 1) === "SHAKE") {
-					// get player id from data, check gameover array, if not gameover, send back OK, otherwise send "GAME OVER"
-					// move up the bird for player id
-					var id;
-					// get player id
-
-					if (gameover[id]) {
-						socket.write('GAME OVER');
-					} else {
-						socket.write('OK');
-						// update bird
-					}
-				} else if (data.toString().substr(0, data.length - 1) === "RESTART") {
-					// get player id from data, check gameover array, if all gameover, send back "RESTART OK" , otherwise send "RESTART NOT OK"
-				} else {
-					console.log(data);
+						break;
+					default:
+						break;
 				}
-				console.log('occupied is ' + occupied[1] + ' ' + occupied[2]);
-				console.log('gameover is ' + gameover[1] + ' ' + gameover[2]);
-				//sock.write(JSON.stringify({type:"playerid", content: "" + nextPID}));
 
 			});
 
@@ -197,6 +184,49 @@ function BirdServer() {
 			});
 
 		}).listen(4222, Config.SERVER_NAME);
+	}
+
+	var isAllReady = function() {
+		if (player_count < 2) {
+			return false;
+		}
+		var id;
+		for (id in controllers) {
+			if (controllers[id] !== "ready")
+				return false;
+		}
+
+		return true;
+	}
+
+	var getCurrentTime() {
+		var date = new Date();
+		var currentTime = date.getTime();
+		return currentTime;
+	}
+	
+	var resetGame = function() {
+		gameInterval = undefined;
+	}
+
+	var gameLoop = function() {
+		
+
+		var birdArr = [];
+		var id;
+		for (id in birds) {
+			var bird = birds[id];
+			bird.updatePositiion(Config.SERVER_INTERVAL);
+			var position = bird.getBirdPosition();
+			position["id"] = id;
+			birdArr.push(position);
+		}
+
+		unicast(web_sockets[id], {
+			type: update,
+			timestamp: getCurrentTime(),
+			birds: birdArr
+		});
 	}
 }
 
