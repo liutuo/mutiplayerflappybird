@@ -7,7 +7,7 @@ function BirdClient() {
 	var myId;
 	var birds = {};
 	var map;
-	var screenX;
+	var screenX = 0;
 
 	var sendToServer = function(msg) {
 		var date = new Date();
@@ -28,15 +28,18 @@ function BirdClient() {
 			socket = new SockJS("http://" + Config.SERVER_NAME + ":" + Config.WEBPORT + "/bird");
 			socket.onmessage = function(e) {
 				var message = JSON.parse(e.data);
+				// console.log(message);
 				switch (message.type) {
 					case "connect":
+						console.log(message);
 						if (message.isMyself) {
 							myId = message.id;
+							renderer.setPlayer(message.id);
 						}
 						var bird = new Bird();
 						bird.init();
 						birds[message.id] = bird;
-						renderer.setPlayer(message.id);
+
 						renderer.createBird(message.id, bird.x, bird.y);
 						break;
 					case "update":
@@ -46,7 +49,6 @@ function BirdClient() {
 						lastUpdateAt = t;
 
 						// update player
-						console.log("update player");
 
 						var birdsUpdate = message.birds;
 						var index;
@@ -62,15 +64,23 @@ function BirdClient() {
 						break;
 					case "start":
 						startGame();
+						setTimeout(function(){sendToServer({type:"start"})}, 3000);
 						break;
 					case "end":
+					console.log(message);
 						endGame(message.loser, message.distance);
 						break;
 					case "new_tube":
 						var tubes = message.tubes;
 						var id;
 						for (id in tubes) {
-							map.addNewTube(tubes[id]);
+							var covertedTube = {
+								x:tubes[id].x - screenX,
+								y:tubes[id].y,
+								w:tubes[id].w,
+								h:tubes[id].h
+							};
+							renderer.addTube(covertedTube);
 						}
 						break;
 					default:
@@ -100,8 +110,12 @@ function BirdClient() {
 	var render = function() {
 		var id;
 		for (id in birds) {
-			renderer.updateBird(id, birds.x, birds.y);
+			renderer.updateBird(id, {
+				x: birds[id].x,
+				y: birds[id].y
+			});
 		}
+
 	}
 
 	/**
@@ -120,10 +134,11 @@ function BirdClient() {
 	 * @param  int distance distance flied
 	 */
 	var endGame = function(loserid, distance) {
-			if (myId !== loserid) {
-				renderer.endGame(false, distance);
-			} else {
+		console.log(myId,loserid);
+			if (myId != loserid) {
 				renderer.endGame(true, distance);
+			} else {
+				renderer.endGame(false, distance);
 			}
 		}
 		/*

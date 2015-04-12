@@ -141,6 +141,7 @@ function Render() {
 	var handleTick = function(event) {
 		var deltaS = event.delta / 1000;
 
+
 		if (isStarted && timeToStart > 0) {
 			timeToStart -= deltaS;
 			if (Math.floor(timeToStart)) {
@@ -153,7 +154,7 @@ function Render() {
 		// if the game is started, start to move the background objects
 		if (isStarted && timeToStart <= 0) {
 			stage.removeChild(countDownLabel);
-			ground.x = (ground.x - deltaS * 150) % ground.tileW;
+			ground.x = (ground.x - deltaS * Config.FORWARD_VELOCITY) % ground.tileW;
 
 			hill.x = (hill.x - deltaS * 30);
 			if (hill.x + hill.image.width * hill.scaleX <= 0) {
@@ -166,11 +167,12 @@ function Render() {
 			var index;
 			for (index in tubes) {
 				if (tubes[index].x + Config.TUBE_WIDTH < -1000) {
-					// stage.removeChild(tubes[index]);
-					// tubes.splice(index, 1);;
+					stage.removeChild(tubes[index]);
+					tubes.splice(index, 1);;
 				} else {
-					tubes[index].x = tubes[index].x - deltaS * 150;
+					tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
 				}
+				tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
 			}
 
 		}
@@ -194,7 +196,6 @@ function Render() {
 
 	this.setPlayer = function(id) {
 		playerSign.text = "You are player " + id;
-		console.log(playerSign);
 		stage.addChild(playerSign);
 	}
 }

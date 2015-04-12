@@ -14,6 +14,7 @@ function BirdServer() {
 	var nextPID = 1;
 	var isGameStarted = false;
 	var timeToGenerateTube = 0;
+	var startX = 500;
 	var screenX = 0;
 	var gameInterval;
 	/*
@@ -63,9 +64,15 @@ function BirdServer() {
 		for (index in web_sockets) {
 			unicast(web_sockets[index], {
 				type: "connect",
-				id: index,
-				isMyself: true,
+				id: nextPID,
+				isMyself: false,
 			});
+			unicast(conn, {
+				type: "connect",
+				id: index,
+				isMyself: false,
+			});
+
 		}
 
 		var bird = new Bird();
@@ -75,6 +82,11 @@ function BirdServer() {
 		console.log("new player with id " + nextPID + " created");
 		web_sockets[nextPID] = conn;
 		controllers[nextPID] = "empty";
+
+		unicast(conn, {
+			type: "new_tube",
+			tubes: map.getTubeQueue()
+		});
 
 		nextPID = ((nextPID + 1) % 2 === 0) ? 2 : 1;
 	}
@@ -87,6 +99,12 @@ function BirdServer() {
 		var net = require("net");
 
 		map = new Map();
+
+		//generate 3 initial tubes
+		for (var i = 0; i < 3; i++) {
+			map.generateNewTubePair(startX);
+			startX += Config.TUBE_BLOCK;
+		}
 
 		//establish connection between server and web client
 		sock.on('connection', function(conn) {
@@ -121,6 +139,9 @@ function BirdServer() {
 				var message = JSON.parse(data);
 
 				switch (message.type) {
+					case "start":
+						startGame();
+						break;
 					default: console.log("Unhandled " + message.type);
 				}
 			});
@@ -162,9 +183,8 @@ function BirdServer() {
 
 						if (isAllReady()) {
 							isGameStarted = true;
-							gameInterval = setInterval(function() {
-								gameLoop();
-							}, Config.SERVER_INTERVAL);
+
+
 							broadcast({
 								type: "start",
 								timestamp: getCurrentTime()
@@ -238,13 +258,38 @@ function BirdServer() {
 		}
 	}
 
+	var startGame = function() {
+		gameInterval = setInterval(function() {
+			gameLoop();
+		}, Config.SERVER_INTERVAL);
+	}
 	var gameLoop = function() {
-		// check if add new tube
-		
-		// delete the passed tubes
-		if (birds[0].x > 500 && birds[0].x % 250 > 230) {
+		screenX += Config.SERVER_INTERVAL/1000 * Config.FORWARD_VELOCITY;
+
+		// check if add new tube and delete the passed tubes
+		if (screenX > 0 && screenX % 250 > 230) {
 			map.deleteTube();
+			var tubePair = map.generateNewTubePair();
+			broadcast({
+				type: "new_tube",
+				tubes: tubePair
+			});
 		}
+
+		// update bird position
+		var birdArr = [];
+		var id;
+		for (id in birds) {
+			var bird = birds[id];
+			bird.updatePositiion(Config.SERVER_INTERVAL / 1000);
+			var position = {
+				id: id,
+				x: bird.x,
+				y: bird.y
+			};
+			birdArr.push(position);
+		}
+		
 
 		// detect collision
 		var tubePair = map.getNearestTubePair();
@@ -257,30 +302,20 @@ function BirdServer() {
 						type: "end",
 						timestamp: getCurrentTime(),
 						loser: i,
-						distance: 0 
+						distance: 0
 					});
+					gameInterval = undefined;
+					return;
 				}
 
 			}
+			unicast(web_sockets[i], {
+				type: "update",
+				timestamp: getCurrentTime(),
+				birds: birdArr,
+				screen_x: screenX
+			});
 		}
-
-
-		var birdArr = [];
-		var id;
-		for (id in birds) {
-			var bird = birds[id];
-			bird.updatePositiion(Config.SERVER_INTERVAL);
-			var position = bird.getBirdPosition();
-			position["id"] = id;
-			birdArr.push(position);
-		}
-
-		unicast(web_sockets[id], {
-			type: "update",
-			timestamp: getCurrentTime(),
-			birds: birdArr,
-			screen_x: screenX
-		});
 	}
 }
 
