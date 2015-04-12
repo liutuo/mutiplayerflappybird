@@ -94,7 +94,7 @@ function Render() {
 		createjs.Ticker.addEventListener("tick", handleTick);
 	}
 
-	this.createBird = function(bid) {
+	this.createBird = function(bid, x, y) {
 
 		var birdImage;
 		if (bid % 2 == 0)
@@ -115,8 +115,8 @@ function Render() {
 			}
 		});
 		birds[bid] = new createjs.Sprite(spriteSheet, "fly");
-		birds[bid].x = 200;
-		birds[bid].y = 330;
+		birds[bid].x = x;
+		birds[bid].y = y;
 
 		stage.addChild(birds[bid]);
 	}

@@ -14,6 +14,7 @@ function BirdServer() {
 	var nextPID = 1;
 	var isGameStarted = false;
 	var timeToGenerateTube = 0;
+	var screenX = 0;
 	var gameInterval;
 	/*
 	 * private method: broadcast(msg)
@@ -68,11 +69,10 @@ function BirdServer() {
 		}
 
 		var bird = new Bird();
-		bird.x = 200;
-		bird.y = 330;
-		
+		bird.init();
+
 		birds[nextPID] = bird;
-		console.log("new player with id "+nextPID+" created");
+		console.log("new player with id " + nextPID + " created");
 		web_sockets[nextPID] = conn;
 		controllers[nextPID] = "empty";
 
@@ -227,22 +227,43 @@ function BirdServer() {
 		gameInterval = undefined;
 	}
 
-	var generateTube = function(w,y) {
-
-	}
 
 	var detectCollision = function(bird, tube) {
-		if(bird.x + Config.BIRD_FRAME_WIDTH < tube.x || tube.x + tube.w < bird.x ||
-			bird.y + Config.BIRD_FRAME_HEIGHT < tube.y || tube.y + tube.h < bird.y){
+		if (bird.x + Config.BIRD_FRAME_WIDTH < tube.x || tube.x + tube.w < bird.x ||
+			bird.y + Config.BIRD_FRAME_HEIGHT < tube.y || tube.y + tube.h < bird.y) {
 
 			return false;
-		}else {
+		} else {
 			return true;
 		}
 	}
 
 	var gameLoop = function() {
-		// detect if 
+		// check if add new tube
+		
+		// delete the passed tubes
+		if (birds[0].x > 500 && birds[0].x % 250 > 230) {
+			map.deleteTube();
+		}
+
+		// detect collision
+		var tubePair = map.getNearestTubePair();
+		var i, j;
+		for (i in birds) {
+			for (j in tubePair) {
+				if (detectCollision(birds[i], tubePair[j])) {
+					// bird i die
+					broadcast({
+						type: "end",
+						timestamp: getCurrentTime(),
+						loser: i,
+						distance: 0 
+					});
+				}
+
+			}
+		}
+
 
 		var birdArr = [];
 		var id;
@@ -257,7 +278,8 @@ function BirdServer() {
 		unicast(web_sockets[id], {
 			type: "update",
 			timestamp: getCurrentTime(),
-			birds: birdArr
+			birds: birdArr,
+			screen_x: screenX
 		});
 	}
 }

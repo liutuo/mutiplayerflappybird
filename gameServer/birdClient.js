@@ -6,7 +6,8 @@ function BirdClient() {
 	var lastUpdateAt = 0;
 	var myId;
 	var birds = {};
-
+	var map;
+	var screenX;
 
 	var sendToServer = function(msg) {
 		var date = new Date();
@@ -33,9 +34,10 @@ function BirdClient() {
 							myId = message.id;
 						}
 						var bird = new Bird();
+						bird.init();
 						birds[message.id] = bird;
 						renderer.setPlayer(message.id);
-						renderer.createBird(message.id);
+						renderer.createBird(message.id, bird.x, bird.y);
 						break;
 					case "update":
 						var t = message.timestamp;
@@ -55,13 +57,21 @@ function BirdClient() {
 								y: bird.y
 							});
 						}
+						screenX = message.screen_x;
 						render();
 						break;
 					case "start":
 						startGame();
 						break;
 					case "end":
-						endGame(message.winner, message.distance);
+						endGame(message.loser, message.distance);
+						break;
+					case "new_tube":
+						var tubes = message.tubes;
+						var id;
+						for (id in tubes) {
+							map.addNewTube(tubes[id]);
+						}
 						break;
 					default:
 						console.log("unhandle type:" + message.type);
@@ -105,31 +115,31 @@ function BirdClient() {
 
 	/**
 	 * private method: endGame
-	 * 
+	 *
 	 * @param  int winnerid id of the winner
 	 * @param  int distance distance flied
 	 */
-	var endGame = function(winnerid, distance) {
-		if (myId === winnerid) {
-			renderer.endGame(true, distance);
+	var endGame = function(loserid, distance) {
+			if (myId !== loserid) {
+				renderer.endGame(false, distance);
+			} else {
+				renderer.endGame(true, distance);
+			}
 		}
-		else {
-			renderer.endGame(false, distance);
-		}
-	}
-	/*
-	 * priviledge method: start
-	 *
-	 * Create the ball and paddles objects, connects to
-	 * server, draws the GUI, and starts the rendering
-	 * loop.
-	 */
+		/*
+		 * priviledge method: start
+		 *
+		 * Create the ball and paddles objects, connects to
+		 * server, draws the GUI, and starts the rendering
+		 * loop.
+		 */
 	this.start = function() {
+		map = new Map();
 		//initialize game
 		initGUI();
 		// Initialize network and GUI
 		initNetwork();
-		
+
 	}
 }
 
