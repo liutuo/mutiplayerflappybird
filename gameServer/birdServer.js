@@ -267,7 +267,7 @@ function BirdServer() {
 		screenX += Config.SERVER_INTERVAL/1000 * Config.FORWARD_VELOCITY;
 
 		// check if add new tube and delete the passed tubes
-		if (screenX > 0 && screenX % 250 > 230) {
+		if (screenX > 500 && screenX % 250 > 230) {
 			map.deleteTube();
 			var tubePair = map.generateNewTubePair();
 			broadcast({
