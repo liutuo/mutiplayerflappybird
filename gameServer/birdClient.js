@@ -4,7 +4,13 @@
 function BirdClient() {
 	var socket;
 	var lastUpdateAt = 0;
-
+	var showMessage = function(location, msg) {
+        document.getElementById(location).innerHTML = msg;
+    }
+    var appendMessage = function(location, msg) {
+        var prev_msgs = document.getElementById(location).innerHTML;
+        document.getElementById(location).innerHTML = "[" + new Date().toString() + "] " + msg + "<br />" + prev_msgs;
+    }
 	var sendToServer = function(msg) {
 		var date = new Date();
 		var currentTime = date.getTime();
