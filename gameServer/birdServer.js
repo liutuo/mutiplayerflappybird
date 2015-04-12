@@ -2,7 +2,7 @@
 "use strict";
 var LIB_PATH = "./";
 require(LIB_PATH + "Config.js");
-require(LIB_PATH + "player.js")
+//require(LIB_PATH + "player.js")
 
 function BirdServer() {
 	var web_sockets; // Associative array for web sockets, indexed via player ID
@@ -155,10 +155,10 @@ function BirdServer() {
                 console.log('data length is '+data.length);
                 if(data.toString().substr(0,data.length-1) === "1"){
                 	if(occupied[1] == 0){ // available
-                		sock.write('Player 1');
+                		socket.write('Player 1\n');
                 		occupied[1] == 1;
                 	}else{
-                		sock.write('Player 2');
+                		socket.write('Player 2\n');
                 		occupied[2] == 1;
                 	}
                     
@@ -184,6 +184,8 @@ function BirdServer() {
                     }
                 }else if(data.toString().substr(0,data.length-1) === "RESTART"){
                 	// get player id from data, check gameover array, if all gameover, send back "RESTART OK" , otherwise send "RESTART NOT OK"
+                }else{
+                	console.log(data);
                 }
                 console.log('occupied is ' + occupied[1] +' '+occupied[2]);
                 console.log('gameover is ' +gameover[1]+' '+gameover[2]);
@@ -196,7 +198,7 @@ function BirdServer() {
                 console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
             });
             
-            }).listen(PORT, HOST);
+            }).listen(4222, Config.SERVER_NAME);
 	}
 }
 
