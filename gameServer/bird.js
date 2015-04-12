@@ -7,6 +7,10 @@ function Bird() {
 	this.height = Config.BIRD_FRAME_HEIGHT;
 	this.velocity = 0;
 
+	this.init() {
+		this.x = Config.BIRD_INIT_X;
+		this.y = Config.BIRD_INIT_Y;
+	}
 	this.setBirdPosition = function(position) {
 		this.x = position.x;
 		this.y = position.y;

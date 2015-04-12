@@ -13,6 +13,7 @@ var Config = {
 	GROUND_HEIGHT : 80,
 	TUBE_WIDTH : 80,
 	TUBE_BLOCK : 250,
+	MIN_GAP : 200,
 	SERVER_INTERVAL : 50,
 }
 
