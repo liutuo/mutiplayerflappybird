@@ -2,14 +2,18 @@
 "use strict";
 var LIB_PATH = "./";
 require(LIB_PATH + "Config.js");
-require(LIB_PATH + "player.js")
+//require(LIB_PATH + "player.js")
 
 function BirdServer() {
-	var web_sockets = {};
-	var players = {};
-	var controllers;
+	var web_sockets; // Associative array for web sockets, indexed via player ID
+	var players; // Associative array for players, indexed via socket ID
+	var p1, p2;       // Player 1 and 2.
+	var controllers; // controllers 1 and 2.
 	var player_count = 0;
-
+	var nextPID;
+	var occupied=[0,0];
+	var gameover=[0,0];
+	
 	/*
 	 * private method: broadcast(msg)
 	 *
@@ -49,12 +53,20 @@ function BirdServer() {
 		// Send message to new player (the current client)
 		unicast(conn, {
 			type: "message",
-			content: "Your are new player"
+			content: "Your are player" + nextPID
 		});
 
-		var new_player = new Player();
-		players[conn.id] = new_player;
-		web_sockets[conn.id] = conn;
+		players[conn.id] = new Player(conn.id, nextPID);
+        web_sockets[nextPID] = conn;
+
+        // Mark as player 1 or 2
+        if (nextPID == 1) {
+            p1 = players[conn.id];
+        } else if (nextPID == 2) {
+            p2 = players[conn.id];
+        }
+
+		nextPID = ((nextPID + 1) % 2 === 0) ? 2 : 1;
 	}
 
 	this.start = function() {
@@ -80,7 +92,6 @@ function BirdServer() {
 					type: "message",
 					content: "The game is full.  Come back later"
 				});
-				// TODO: force a disconnect
 			} else {
 				// create a new player
 				newPlayer(conn);
@@ -94,6 +105,13 @@ function BirdServer() {
 
 				// delete player
 				player_count--;
+				// Set nextPID to quitting player's PID
+                nextPID = players[conn.id].pid;
+                occupied[nextPID] = 0;
+                gameover[nextPID] = 0;
+                // Remove player who wants to quit/closed the window
+                if (players[conn.id] === p1) p1 = undefined;
+                if (players[conn.id] === p2) p2 = undefined;
 				delete players[conn.id];
 
 				// Sends to everyone connected to server except the client
@@ -125,6 +143,62 @@ function BirdServer() {
 		});
 		httpServer.listen(Config.WEBPORT, '0.0.0.0');
 		app.use(express.static(__dirname));
+
+
+		net.createServer(function(socket) {
+        
+            // We have a connection - a socket object is assigned to the connection automatically
+            console.log('CONNECTED: ' + socket.remoteAddress +':'+ socket.remotePort);
+            
+            // Add a 'data' event handler to this instance of socket
+            socket.on('data', function(data) {
+                console.log('data length is '+data.length);
+                if(data.toString().substr(0,data.length-1) === "1"){
+                	if(occupied[1] == 0){ // available
+                		socket.write('Player 1\n');
+                		occupied[1] == 1;
+                	}else{
+                		socket.write('Player 2\n');
+                		occupied[2] == 1;
+                	}
+                    
+                }else if(data.toString().substr(0,data.length-1) === "2"){
+                    if(occupied[2] == 0){ //available
+                		sock.write('Player 2');
+                		occupied[2] == 1
+                	}else{
+                		sock.write('Player 1');
+                		occupied[1] == 1;
+                	}
+                }else if(data.toString().substr(0,data.length-1) === "SHAKE"){
+                    // get player id from data, check gameover array, if not gameover, send back OK, otherwise send "GAME OVER"
+                    // move up the bird for player id
+                    var id;
+                    // get player id
+
+                    if(gameover[id]){
+                    	sock.write('GAME OVER');
+                    } else{
+                    	sock.write('OK');
+                    	// update bird
+                    }
+                }else if(data.toString().substr(0,data.length-1) === "RESTART"){
+                	// get player id from data, check gameover array, if all gameover, send back "RESTART OK" , otherwise send "RESTART NOT OK"
+                }else{
+                	console.log(data);
+                }
+                console.log('occupied is ' + occupied[1] +' '+occupied[2]);
+                console.log('gameover is ' +gameover[1]+' '+gameover[2]);
+                //sock.write(JSON.stringify({type:"playerid", content: "" + nextPID}));
+                
+            });
+            
+            // Add a 'close' event handler to this instance of socket
+            sock.on('close', function(data) {
+                console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
+            });
+            
+            }).listen(4222, Config.SERVER_NAME);
 	}
 }
 

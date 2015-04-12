@@ -7,6 +7,7 @@ function BirdClient() {
 	var myId;
 	var birds = {};
 
+
 	var sendToServer = function(msg) {
 		var date = new Date();
 		var currentTime = date.getTime();
