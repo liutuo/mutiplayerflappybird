@@ -1,7 +1,8 @@
 var Config = {
 	WEBPORT : 4223,
 	CONTROLLERPORT : 4222,
-	SERVER_NAME : "localhost",
+	// SERVER_NAME : "localhost",
+	SERVER_NAME : "192.168.1.137",
 	BIRD_FRAME_WIDTH : 58,
 	BIRD_FRAME_HEIGHT : 40,
 	CANVAS_WIDTH : "1000",

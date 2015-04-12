@@ -6,8 +6,9 @@ function Render() {
 	var tubes = [];
 	var winningSign;
 	var playerSign;
+	var countDownLabel;
 	var isStarted = false;
-
+	var timeToStart;
 	this.init = function() {
 		// setup main stage
 		stage = new createjs.Stage("gameStage");
@@ -42,12 +43,13 @@ function Render() {
 
 	this.startGame = function() {
 		isStarted = true;
-
+		timeToStart = 4;
 		var index;
 		for (index in birds) {
 			birds[index].gotoAndPlay("fly");
 		}
 
+		stage.addChild(countDownLabel);
 		stage.removeChild(winningSign);
 		stage.removeChild(playerSign);
 	}
@@ -128,13 +130,29 @@ function Render() {
 		playerSign.y = 200;
 		playerSign.textBaseline = "alphabetic";
 
+		countDownLabel = new createjs.Text("", "30px Arial", "#ff7700");
+		countDownLabel.x = 500;
+		countDownLabel.y = 200;
+		countDownLabel.textBaseline = "alphabetic";
+
 	}
 
 	var handleTick = function(event) {
 		var deltaS = event.delta / 1000;
 
+		if (isStarted && timeToStart > 0) {
+			timeToStart -= deltaS;
+			if (Math.floor(timeToStart)) {
+				countDownLabel.text = Math.floor(timeToStart);
+			}
+			else {
+				countDownLabel.text = "Start!";
+			}
+		}
+
 		// if the game is started, start to move the background objects
-		if (isStarted) {
+		if (isStarted && timeToStart <= 0) {
+			stage.removeChild(countDownLabel);
 			ground.x = (ground.x - deltaS * 150) % ground.tileW;
 
 			hill.x = (hill.x - deltaS * 30);

@@ -1,14 +1,15 @@
 // enforce strict/clean programming
 "use strict";
 var LIB_PATH = "./";
+require(LIB_PATH + "bird.js");
 require(LIB_PATH + "Config.js");
 
 function BirdServer() {
 	var web_sockets = {}; // Associative array for web sockets, indexed via player ID
 	var birds = {};
-	var controllers; // controllers 1 and 2.
+	var controllers = {}; // controllers 1 and 2.
 	var player_count = 0;
-	var nextPID;
+	var nextPID = 1;
 	var isGameStarted = false;
 	var gameInterval;
 	/*
@@ -56,7 +57,7 @@ function BirdServer() {
 
 		var index;
 		for (index in web_sockets) {
-			unicast(web_sockets[id], {
+			unicast(web_sockets[index], {
 				type: "connect",
 				id: index,
 				isMyself: true,
@@ -65,7 +66,7 @@ function BirdServer() {
 
 		var bird = new Bird();
 		birds[nextPID] = bird;
-
+		console.log("new player with id "+nextPID+" created");
 		web_sockets[nextPID] = conn;
 		controllers[nextPID] = "empty";
 
@@ -81,8 +82,6 @@ function BirdServer() {
 
 		//establish connection between server and web client
 		sock.on('connection', function(conn) {
-			console.log("connected");
-			console.log(conn.id);
 			// Sends to client
 
 			if (player_count == 2) {
@@ -101,11 +100,10 @@ function BirdServer() {
 				console.log("close");
 
 				// stop the game
+				resetGame();
 
 				// delete player
 				player_count--;
-
-
 
 			});
 
@@ -139,38 +137,50 @@ function BirdServer() {
 			// Add a 'data' event handler to this instance of socket
 			socket.on('data', function(data) {
 				var message = JSON.parse(data);
-				swtich(message.type) {
+				console.log(message);
+				switch (message.type) {
 					case "connect":
-						if (controllers[message.id] === undefined || controllers[message.id] !== "empty") {
-							socket.write("NOT OK\n");
+						console.log(message.prefered_id);
+						if (controllers[message.prefered_id] === undefined || controllers[message.prefered_id] !== "empty") {
+
+							socket.write("CONNECT NOT OK\n");
 						} else {
-							controllers[message.id] = "taken";
-							socket.write("OK\n");
+							controllers[message.prefered_id] = "taken";
+							socket.write("CONNECT OK\n");
 						}
 						break;
 					case "ready":
 						controllers[message.id] = "ready";
+
 						if (isAllReady()) {
 							isGameStarted = true;
-							gameInterval = setInterval(function() {gameLoop();}, Config.SERVER_INTERVAL);
+							gameInterval = setInterval(function() {
+								gameLoop();
+							}, Config.SERVER_INTERVAL);
 							broadcast({
-								type:"start",
-								timestamp: getCurrentTime();
+								type: "start",
+								timestamp: getCurrentTime()
 							});
+							socket.write("READY OK\n");
+						} else {
+							socket.write("READY NOT OK\n");
 						}
+
 						break;
 					case "shake":
 						if (isGameStarted) {
 							birds[message.id].birdFlap();
 						}
+						socket.write("SHAKE OK\n")
 						break;
 					case "disconnect":
 						delete controllers[message.id];
 						isGameStarted = false;
 						resetGame();
+						socket.write("DISCONNECT OK");
 						break;
 					case "restart":
-
+						socket.write("RESTART OK");
 						break;
 					default:
 						break;
@@ -180,7 +190,7 @@ function BirdServer() {
 
 			// Add a 'close' event handler to this instance of socket
 			socket.on('close', function(data) {
-				console.log('CLOSED: ' + socket.remoteAddress + ' ' + socket.remotePort);
+				// console.log('CLOSED: ' + socket.remoteAddress + ' ' + socket.remotePort);
 			});
 
 		}).listen(4222, Config.SERVER_NAME);
@@ -199,18 +209,18 @@ function BirdServer() {
 		return true;
 	}
 
-	var getCurrentTime() {
+	var getCurrentTime = function() {
 		var date = new Date();
 		var currentTime = date.getTime();
 		return currentTime;
 	}
-	
+
 	var resetGame = function() {
 		gameInterval = undefined;
 	}
 
 	var gameLoop = function() {
-		
+
 
 		var birdArr = [];
 		var id;
@@ -223,7 +233,7 @@ function BirdServer() {
 		}
 
 		unicast(web_sockets[id], {
-			type: update,
+			type: "update",
 			timestamp: getCurrentTime(),
 			birds: birdArr
 		});

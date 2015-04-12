@@ -34,6 +34,7 @@ function BirdClient() {
 						}
 						var bird = new Bird();
 						birds[message.id] = bird;
+						renderer.setPlayer(message.id);
 						break;
 					case "update":
 						var t = message.timestamp;
@@ -85,7 +86,12 @@ function BirdClient() {
 	 * Draw the play area.  Called periodically at a rate
 	 * equals to the frame rate.
 	 */
-	var render = function() {}
+	var render = function() {
+		var id;
+		for (id in birds) {
+			renderer.updateBird(id, birds.x, birds.y);
+		}
+	}
 
 	/**
 	 * private method: startGame
