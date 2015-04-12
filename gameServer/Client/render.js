@@ -35,6 +35,22 @@ function Render() {
 			src: "tube.png",
 			id: "tube"
 		}];
+
+		winningSign = new createjs.Text("", "30px Arial", "#ff7700");
+		winningSign.x = 500;
+		winningSign.y = 200;
+		winningSign.textBaseline = "alphabetic";
+
+		playerSign = new createjs.Text("", "30px Arial", "#ff7700");
+		playerSign.x = 500;
+		playerSign.y = 200;
+		playerSign.textBaseline = "alphabetic";
+
+		countDownLabel = new createjs.Text("", "30px Arial", "#ff7700");
+		countDownLabel.x = 500;
+		countDownLabel.y = 200;
+		countDownLabel.textBaseline = "alphabetic";
+
 		loader = new createjs.LoadQueue(false);
 		loader.addEventListener("complete", handleComplete);
 		loader.loadManifest(manifest, true, "Assets/");
@@ -99,8 +115,8 @@ function Render() {
 			}
 		});
 		birds[bid] = new createjs.Sprite(spriteSheet, "fly");
-		birds[bid].x = 10;
-		birds[bid].y = 10;
+		birds[bid].x = 200;
+		birds[bid].y = 330;
 
 		stage.addChild(birds[bid]);
 	}
@@ -120,21 +136,6 @@ function Render() {
 		hill2.setTransform(Math.random() * width, height - hill2.image.height * 3 - groundImg.height, 3, 3);
 		stage.addChild(ground, hill, hill2);
 
-		winningSign = new createjs.Text("", "30px Arial", "#ff7700");
-		winningSign.x = 500;
-		winningSign.y = 200;
-		winningSign.textBaseline = "alphabetic";
-
-		playerSign = new createjs.Text("", "30px Arial", "#ff7700");
-		playerSign.x = 500;
-		playerSign.y = 200;
-		playerSign.textBaseline = "alphabetic";
-
-		countDownLabel = new createjs.Text("", "30px Arial", "#ff7700");
-		countDownLabel.x = 500;
-		countDownLabel.y = 200;
-		countDownLabel.textBaseline = "alphabetic";
-
 	}
 
 	var handleTick = function(event) {
@@ -144,8 +145,7 @@ function Render() {
 			timeToStart -= deltaS;
 			if (Math.floor(timeToStart)) {
 				countDownLabel.text = Math.floor(timeToStart);
-			}
-			else {
+			} else {
 				countDownLabel.text = "Start!";
 			}
 		}
@@ -166,8 +166,8 @@ function Render() {
 			var index;
 			for (index in tubes) {
 				if (tubes[index].x + Config.TUBE_WIDTH < -1000) {
-					stage.removeChild(tubes[index]);
-					tubes.splice(index, 1);;
+					// stage.removeChild(tubes[index]);
+					// tubes.splice(index, 1);;
 				} else {
 					tubes[index].x = tubes[index].x - deltaS * 150;
 				}
@@ -193,7 +193,7 @@ function Render() {
 	}
 
 	this.setPlayer = function(id) {
-		playerSign.text = "You are player "+id;
+		playerSign.text = "You are player " + id;
 		console.log(playerSign);
 		stage.addChild(playerSign);
 	}

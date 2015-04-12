@@ -2,15 +2,18 @@
 "use strict";
 var LIB_PATH = "./";
 require(LIB_PATH + "bird.js");
+require(LIB_PATH + "map.js");
 require(LIB_PATH + "Config.js");
 
 function BirdServer() {
 	var web_sockets = {}; // Associative array for web sockets, indexed via player ID
 	var birds = {};
 	var controllers = {}; // controllers 1 and 2.
+	var map;
 	var player_count = 0;
 	var nextPID = 1;
 	var isGameStarted = false;
+	var timeToGenerateTube = 0;
 	var gameInterval;
 	/*
 	 * private method: broadcast(msg)
@@ -65,6 +68,9 @@ function BirdServer() {
 		}
 
 		var bird = new Bird();
+		bird.x = 200;
+		bird.y = 330;
+		
 		birds[nextPID] = bird;
 		console.log("new player with id "+nextPID+" created");
 		web_sockets[nextPID] = conn;
@@ -79,6 +85,8 @@ function BirdServer() {
 		var sockjs = require('sockjs');
 		var sock = sockjs.createServer();
 		var net = require("net");
+
+		map = new Map();
 
 		//establish connection between server and web client
 		sock.on('connection', function(conn) {
@@ -219,8 +227,16 @@ function BirdServer() {
 		gameInterval = undefined;
 	}
 
-	var gameLoop = function() {
+	var generateTube = function(w,y) {
 
+	}
+
+	var detectCollision = function(bird, tube) {
+
+	}
+
+	var gameLoop = function() {
+		// detect if 
 
 		var birdArr = [];
 		var id;

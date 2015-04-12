@@ -35,6 +35,7 @@ function BirdClient() {
 						var bird = new Bird();
 						birds[message.id] = bird;
 						renderer.setPlayer(message.id);
+						renderer.createBird(message.id);
 						break;
 					case "update":
 						var t = message.timestamp;
@@ -125,10 +126,10 @@ function BirdClient() {
 	 */
 	this.start = function() {
 		//initialize game
-
+		initGUI();
 		// Initialize network and GUI
 		initNetwork();
-		initGUI();
+		
 	}
 }
 
