@@ -87,7 +87,8 @@ function BirdServer() {
 
 		unicast(conn, {
 			type: "new_tube",
-			tubes: map.getTubeQueue()
+			tubes: map.getTubeQueue(),
+			screen_x : screenX
 		});
 
 		nextPID = ((nextPID + 1) % 2 === 0) ? 2 : 1;
@@ -284,7 +285,8 @@ function BirdServer() {
 			var tubePair = map.generateNewTubePair(startX);
 			broadcast({
 				type: "new_tube",
-				tubes: tubePair
+				tubes: tubePair,
+				screen_x : screenX
 			});
 			startX += 250;
 			console.log("new tube", tubePair);
@@ -314,7 +316,7 @@ function BirdServer() {
 			for (j in tubePair) {
 				if (detectCollision(birds[i], tubePair[j])) {
 					// bird i die
-					console.log(birds[i], tubePair[j])
+					console.log(birds[i], tubePair[j], screenX);
 					broadcast({
 						type: "end",
 						timestamp: getCurrentTime(),
