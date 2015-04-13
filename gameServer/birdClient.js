@@ -63,11 +63,11 @@ function BirdClient() {
 						break;
 					case "start":
 						startGame();
-						setTimeout(function() {
-							sendToServer({
-								type: "start"
-							})
-						}, 4000);
+
+						sendToServer({
+							type: "start"
+						})
+
 						break;
 					case "end":
 						console.log(message);

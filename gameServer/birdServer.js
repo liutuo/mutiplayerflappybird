@@ -78,7 +78,7 @@ function BirdServer() {
 		}
 
 		var bird = new Bird();
-		bird.init();
+		bird.init(nextPID);
 
 		birds[nextPID] = bird;
 		console.log("new player with id " + nextPID + " created");
@@ -104,7 +104,7 @@ function BirdServer() {
 		map = new Map();
 
 		//generate 3 initial tubes
-		for (var i = 0; i < 3; i++) {
+		for (var i = 0; i < 20; i++) {
 			map.generateNewTubePair(startX);
 			startX += Config.TUBE_BLOCK;
 		}
@@ -144,7 +144,8 @@ function BirdServer() {
 				switch (message.type) {
 					case "start":
 						if (!isGameStarted) {
-							startGame();
+							isGameStarted = true;
+							setTimeout(startGame, 4000);
 						}
 
 						break;
@@ -202,7 +203,7 @@ function BirdServer() {
 						break;
 					case "shake":
 						if (isGameStarted) {
-							birds[message.id].birdFlap();
+							birds[message.id].birdFlap(message.strength);
 						}
 						socket.write("SHAKE OK\n")
 						break;
@@ -227,6 +228,9 @@ function BirdServer() {
 							map.generateNewTubePair(startX);
 							startX += Config.TUBE_BLOCK;
 						}
+						broadcast({
+							type: "restart"
+						});
 						broadcast({
 							type: "new_tube",
 							tubes: map.getTubeQueue(),
@@ -286,7 +290,7 @@ function BirdServer() {
 
 
 	var detectCollision = function(bird, tube) {
-		if(bird.y < 0 || bird.y > (CANVAS_HEIGHT - GROUND_HEIGHT))){
+		if(bird.y < 0 || bird.y > (Config.CANVAS_HEIGHT - Config.GROUND_HEIGHT - Config.BIRD_FRAME_HEIGHT)){
 			return true;
 		}else if (bird.x + Config.BIRD_FRAME_WIDTH < tube.x || tube.x + tube.w < bird.x ||
 			bird.y + Config.BIRD_FRAME_HEIGHT < tube.y || tube.y + tube.h < bird.y) {
@@ -303,7 +307,7 @@ function BirdServer() {
 		screenX += Config.SERVER_INTERVAL / 1000 * Config.FORWARD_VELOCITY;
 
 		// check if add new tube and delete the passed tubes
-		if (startX - screenX < 1250) {
+		if (startX - screenX < 5500) {
 
 			var tubePair = map.generateNewTubePair(startX);
 			broadcast({
