@@ -286,11 +286,13 @@ function BirdServer() {
 
 
 	var detectCollision = function(bird, tube) {
-		if (bird.x + Config.BIRD_FRAME_WIDTH < tube.x || tube.x + tube.w < bird.x ||
+		if(bird.y < 0 || bird.y > (CANVAS_HEIGHT - GROUND_HEIGHT))){
+			return true;
+		}else if (bird.x + Config.BIRD_FRAME_WIDTH < tube.x || tube.x + tube.w < bird.x ||
 			bird.y + Config.BIRD_FRAME_HEIGHT < tube.y || tube.y + tube.h < bird.y) {
 
 			return false;
-		} else {
+		}else {
 			return true;
 		}
 	}
