@@ -7,9 +7,12 @@ function Bird() {
 	this.height = Config.BIRD_FRAME_HEIGHT;
 	this.velocity = 0;
 
-	this.init = function() {
+	this.init = function(id) {
 		this.x = Config.BIRD_INIT_X;
-		this.y = Config.BIRD_INIT_Y;
+		if (id % 2 == 0)
+			this.y = Config.BIRD_INIT_Y;
+		else
+			this.y = Config.BIRD_INIT_Y + 50;
 	}
 	this.setBirdPosition = function(position) {
 		this.x = position.x;
@@ -23,8 +26,20 @@ function Bird() {
 		};
 	}
 
-	this.birdFlap = function() {
-		this.velocity = Config.FLAP_VELOCITY;
+	this.birdFlap = function(strength) {
+		switch (strength) {
+			case "FAST":
+			this.velocity = Config.FLAP_VELOCITY * 1.6;
+			break;
+			case "NORMAL":
+			this.velocity = Config.FLAP_VELOCITY * 1.3;
+			break;
+			case "SLOW":
+			this.velocity = Config.FLAP_VELOCITY;
+			break;
+
+		}
+		
 	}
 
 	this.updatePositiion = function(t) {

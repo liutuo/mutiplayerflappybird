@@ -16,11 +16,15 @@ function Render() {
 		width = stage.canvas.width;
 		height = stage.canvas.height;
 
+		isStarted = false;
+		var birds = {};
+		var tubes = [];
+
 		manifest = [{
-			src: "red-bird-sprite-sheet.png",
+			src: "blue-bird-sprite-sheet.png",
 			id: "bird_blue"
 		}, {
-			src: "blue-bird-sprite-sheet.png",
+			src: "red-bird-sprite-sheet.png",
 			id: "bird_red"
 		}, {
 			src: "ground.png",
@@ -38,7 +42,7 @@ function Render() {
 
 		winningSign = new createjs.Text("", "30px Arial", "#ff7700");
 		winningSign.x = 500;
-		winningSign.y = 200;
+		winningSign.y = 350;
 		winningSign.textBaseline = "alphabetic";
 
 		playerSign = new createjs.Text("", "30px Arial", "#ff7700");
@@ -48,7 +52,7 @@ function Render() {
 
 		countDownLabel = new createjs.Text("", "30px Arial", "#ff7700");
 		countDownLabel.x = 500;
-		countDownLabel.y = 200;
+		countDownLabel.y = 350;
 		countDownLabel.textBaseline = "alphabetic";
 
 		loader = new createjs.LoadQueue(false);
@@ -67,7 +71,7 @@ function Render() {
 
 		stage.addChild(countDownLabel);
 		stage.removeChild(winningSign);
-		stage.removeChild(playerSign);
+		// stage.removeChild(playerSign);
 	}
 
 	this.endGame = function(isWinner, distance) {
@@ -173,7 +177,7 @@ function Render() {
 				// } else {
 				// 	tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
 				// }
-				tubes[index].x = tubes[index].x - createjs.Ticker.interval/1000 * Config.FORWARD_VELOCITY;
+				tubes[index].x = tubes[index].x - createjs.Ticker.interval / 1000 * Config.FORWARD_VELOCITY;
 			}
 
 		}
@@ -196,7 +200,12 @@ function Render() {
 	}
 
 	this.setPlayer = function(id) {
-		playerSign.text = "You are player " + id;
+		playerSign.text = "You are player " + id + ". Your bird is ";
+		if (id % 2 == 0)
+			playerSign.text += "red";
+		else
+			playerSign.text += "blue";
+
 		stage.addChild(playerSign);
 	}
 }

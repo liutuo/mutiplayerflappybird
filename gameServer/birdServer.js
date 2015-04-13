@@ -88,7 +88,7 @@ function BirdServer() {
 		unicast(conn, {
 			type: "new_tube",
 			tubes: map.getTubeQueue(),
-			screen_x : screenX
+			screen_x: screenX
 		});
 
 		nextPID = ((nextPID + 1) % 2 === 0) ? 2 : 1;
@@ -212,6 +212,27 @@ function BirdServer() {
 						socket.write("DISCONNECT OK");
 						break;
 					case "restart":
+						screenX = 0;
+						isGameStarted = false;
+						var id;
+						map = new Map();
+						for (id in controllers) {
+							controllers[id] = "taken";
+						}
+						for (id in birds) {
+							birds[id] = new Bird();
+							birds[id].init(id);
+						}
+						for (var i = 0; i < 3; i++) {
+							map.generateNewTubePair(startX);
+							startX += Config.TUBE_BLOCK;
+						}
+						broadcast({
+							type: "new_tube",
+							tubes: map.getTubeQueue(),
+							screen_x: screenX
+						});
+
 						socket.write("RESTART OK");
 						break;
 					default:
@@ -281,12 +302,12 @@ function BirdServer() {
 
 		// check if add new tube and delete the passed tubes
 		if (startX - screenX < 1250) {
-			
+
 			var tubePair = map.generateNewTubePair(startX);
 			broadcast({
 				type: "new_tube",
 				tubes: tubePair,
-				screen_x : screenX
+				screen_x: screenX
 			});
 			startX += 250;
 			console.log("new tube", tubePair);

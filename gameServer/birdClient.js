@@ -36,7 +36,7 @@ function BirdClient() {
 							renderer.setPlayer(message.id);
 						}
 						var bird = new Bird();
-						bird.init();
+						bird.init(message.id);
 						birds[message.id] = bird;
 
 						renderer.createBird(message.id, bird.x, bird.y);
@@ -58,15 +58,19 @@ function BirdClient() {
 								y: bird.y
 							});
 						}
-						
+
 						render();
 						break;
 					case "start":
 						startGame();
-						setTimeout(function(){sendToServer({type:"start"})}, 4000);
+						setTimeout(function() {
+							sendToServer({
+								type: "start"
+							})
+						}, 4000);
 						break;
 					case "end":
-					console.log(message);
+						console.log(message);
 						endGame(message.loser, message.distance);
 						break;
 					case "new_tube":
@@ -74,13 +78,16 @@ function BirdClient() {
 						var id;
 						for (id in tubes) {
 							var covertedTube = {
-								x:tubes[id].x - screenX,
-								y:tubes[id].y,
-								w:tubes[id].w,
-								h:tubes[id].h
+								x: tubes[id].x - screenX,
+								y: tubes[id].y,
+								w: tubes[id].w,
+								h: tubes[id].h
 							};
 							renderer.addTube(covertedTube);
 						}
+						break;
+					case "restart":
+						restartGame();
 						break;
 					default:
 						console.log("unhandle type:" + message.type);
@@ -133,20 +140,31 @@ function BirdClient() {
 	 * @param  int distance distance flied
 	 */
 	var endGame = function(loserid, distance) {
-		console.log(myId,loserid);
-			if (myId != loserid) {
-				renderer.endGame(true, distance);
-			} else {
-				renderer.endGame(false, distance);
-			}
+		console.log(myId, loserid);
+		if (myId != loserid) {
+			renderer.endGame(true, distance);
+		} else {
+			renderer.endGame(false, distance);
 		}
-		/*
-		 * priviledge method: start
-		 *
-		 * Create the ball and paddles objects, connects to
-		 * server, draws the GUI, and starts the rendering
-		 * loop.
-		 */
+	}
+
+	var restartGame = function() {
+		renderer.init();
+		var id;
+		for (id in birds) {
+			birds[id] = new Bird();
+			birds[id].init(id);
+		}
+		screenX = 0;
+	}
+
+	/*
+	 * priviledge method: start
+	 *
+	 * Create the ball and paddles objects, connects to
+	 * server, draws the GUI, and starts the rendering
+	 * loop.
+	 */
 	this.start = function() {
 		map = new Map();
 		//initialize game
