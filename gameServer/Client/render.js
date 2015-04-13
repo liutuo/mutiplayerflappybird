@@ -139,8 +139,8 @@ function Render() {
 	}
 
 	var handleTick = function(event) {
-		var deltaS = event.delta / 1000;
 
+		var deltaS = event.delta / 1000;
 
 		if (isStarted && timeToStart > 0) {
 			timeToStart -= deltaS;
@@ -173,7 +173,7 @@ function Render() {
 				// } else {
 				// 	tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
 				// }
-				tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
+				tubes[index].x = tubes[index].x - createjs.Ticker.interval/1000 * Config.FORWARD_VELOCITY;
 			}
 
 		}
