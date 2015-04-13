@@ -31,7 +31,6 @@ function BirdClient() {
 				// console.log(message);
 				switch (message.type) {
 					case "connect":
-						console.log(message);
 						if (message.isMyself) {
 							myId = message.id;
 							renderer.setPlayer(message.id);
@@ -49,22 +48,22 @@ function BirdClient() {
 						lastUpdateAt = t;
 
 						// update player
-
+						screenX = message.screen_x;
 						var birdsUpdate = message.birds;
 						var index;
 						for (index in birdsUpdate) {
 							var bird = birdsUpdate[index];
 							birds[bird.id].setBirdPosition({
-								x: bird.x,
+								x: bird.x - screenX,
 								y: bird.y
 							});
 						}
-						screenX = message.screen_x;
+						
 						render();
 						break;
 					case "start":
 						startGame();
-						setTimeout(function(){sendToServer({type:"start"})}, 3000);
+						setTimeout(function(){sendToServer({type:"start"})}, 4000);
 						break;
 					case "end":
 					console.log(message);

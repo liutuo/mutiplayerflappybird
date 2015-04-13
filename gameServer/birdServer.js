@@ -4,6 +4,7 @@ var LIB_PATH = "./";
 require(LIB_PATH + "bird.js");
 require(LIB_PATH + "map.js");
 require(LIB_PATH + "Config.js");
+// require()
 
 function BirdServer() {
 	var web_sockets = {}; // Associative array for web sockets, indexed via player ID
@@ -12,10 +13,11 @@ function BirdServer() {
 	var map;
 	var player_count = 0;
 	var nextPID = 1;
-	var isGameStarted = false;
 	var timeToGenerateTube = 0;
 	var startX = 500;
+	var nearestTubeLastPoint = 750;
 	var screenX = 0;
+	var isGameStarted = false;
 	var gameInterval;
 	/*
 	 * private method: broadcast(msg)
@@ -140,9 +142,13 @@ function BirdServer() {
 
 				switch (message.type) {
 					case "start":
-						startGame();
+						if (!isGameStarted) {
+							startGame();
+						}
+
 						break;
-					default: console.log("Unhandled " + message.type);
+					default:
+						console.log("Unhandled " + message.type);
 				}
 			});
 		});
@@ -182,9 +188,7 @@ function BirdServer() {
 						controllers[message.id] = "ready";
 
 						if (isAllReady()) {
-							isGameStarted = true;
-
-
+							// tell client to start
 							broadcast({
 								type: "start",
 								timestamp: getCurrentTime()
@@ -203,7 +207,6 @@ function BirdServer() {
 						break;
 					case "disconnect":
 						delete controllers[message.id];
-						isGameStarted = false;
 						resetGame();
 						socket.write("DISCONNECT OK");
 						break;
@@ -243,8 +246,20 @@ function BirdServer() {
 		return currentTime;
 	}
 
+	var startGame = function() {
+		isGameStarted = true;
+		gameInterval = setInterval(function() {
+			gameLoop();
+		}, Config.SERVER_INTERVAL);
+	}
+
 	var resetGame = function() {
-		gameInterval = undefined;
+
+		isGameStarted = false;
+		if (gameInterval !== undefined) {
+			clearInterval(gameInterval);
+			// gameInterval = undefined;
+		}
 	}
 
 
@@ -258,24 +273,26 @@ function BirdServer() {
 		}
 	}
 
-	var startGame = function() {
-		gameInterval = setInterval(function() {
-			gameLoop();
-		}, Config.SERVER_INTERVAL);
-	}
+
+
 	var gameLoop = function() {
-		screenX += Config.SERVER_INTERVAL/1000 * Config.FORWARD_VELOCITY;
+		screenX += Config.SERVER_INTERVAL / 1000 * Config.FORWARD_VELOCITY;
 
 		// check if add new tube and delete the passed tubes
-		if (screenX > 500 && screenX % 250 > 230) {
-			map.deleteTube();
-			var tubePair = map.generateNewTubePair();
+		if (startX - screenX < 1250) {
+			
+			var tubePair = map.generateNewTubePair(startX);
 			broadcast({
 				type: "new_tube",
 				tubes: tubePair
 			});
+			startX += 250;
+			console.log("new tube", tubePair);
 		}
-
+		if (nearestTubeLastPoint - screenX < 248) {
+			map.deleteTube()
+			nearestTubeLastPoint += 250;
+		}
 		// update bird position
 		var birdArr = [];
 		var id;
@@ -289,7 +306,6 @@ function BirdServer() {
 			};
 			birdArr.push(position);
 		}
-		
 
 		// detect collision
 		var tubePair = map.getNearestTubePair();
@@ -298,13 +314,14 @@ function BirdServer() {
 			for (j in tubePair) {
 				if (detectCollision(birds[i], tubePair[j])) {
 					// bird i die
+					console.log(birds[i], tubePair[j])
 					broadcast({
 						type: "end",
 						timestamp: getCurrentTime(),
 						loser: i,
 						distance: 0
 					});
-					gameInterval = undefined;
+					resetGame();
 					return;
 				}
 

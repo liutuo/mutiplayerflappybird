@@ -153,6 +153,7 @@ function Render() {
 
 		// if the game is started, start to move the background objects
 		if (isStarted && timeToStart <= 0) {
+			timeToStart = 0;
 			stage.removeChild(countDownLabel);
 			ground.x = (ground.x - deltaS * Config.FORWARD_VELOCITY) % ground.tileW;
 
@@ -166,12 +167,12 @@ function Render() {
 			}
 			var index;
 			for (index in tubes) {
-				if (tubes[index].x + Config.TUBE_WIDTH < -1000) {
-					stage.removeChild(tubes[index]);
-					tubes.splice(index, 1);;
-				} else {
-					tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
-				}
+				// if (tubes[index].x + Config.TUBE_WIDTH < -1000) {
+				// 	stage.removeChild(tubes[index]);
+				// 	tubes.splice(index, 1);;
+				// } else {
+				// 	tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
+				// }
 				tubes[index].x = tubes[index].x - deltaS * Config.FORWARD_VELOCITY;
 			}
 
